@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceLocator", "ServiceLocator\ServiceLocator.csproj", "{089EEFFD-834E-45BC-9A0B-A4E076BCDCDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceLocator.Tests", "ServiceLocator.Tests\ServiceLocator.Tests.csproj", "{1C9584DF-B16D-463F-9ABE-22102AA977D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceLocator.WebApi.Tests", "ServiceLocator.WebApi.Tests\ServiceLocator.WebApi.Tests.csproj", "{A4BAF6EA-61BA-4AA2-BE71-BA2010273B2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{089EEFFD-834E-45BC-9A0B-A4E076BCDCDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{089EEFFD-834E-45BC-9A0B-A4E076BCDCDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{089EEFFD-834E-45BC-9A0B-A4E076BCDCDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C9584DF-B16D-463F-9ABE-22102AA977D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C9584DF-B16D-463F-9ABE-22102AA977D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C9584DF-B16D-463F-9ABE-22102AA977D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C9584DF-B16D-463F-9ABE-22102AA977D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4BAF6EA-61BA-4AA2-BE71-BA2010273B2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4BAF6EA-61BA-4AA2-BE71-BA2010273B2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4BAF6EA-61BA-4AA2-BE71-BA2010273B2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4BAF6EA-61BA-4AA2-BE71-BA2010273B2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
