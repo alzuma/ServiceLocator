@@ -7,6 +7,9 @@
     <Company />
     <Product>Service Locator</Product>
     <Description>Fill service provider with services marked by attributes</Description>
+    <Copyright />
+    <PackageLicenseUrl>https://github.com/alzuma/ServiceLocator/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/alzuma/ServiceLocator</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
