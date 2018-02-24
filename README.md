@@ -5,7 +5,7 @@ Fill service provider with services marked by attributes
 ## Installation
 
 ```
-Install-Package ServiceLocator -Version 1.0.0
+Install-Package ServiceLocator
 ```
 
 ## Usage
