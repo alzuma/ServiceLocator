@@ -10,6 +10,7 @@
     <Copyright />
     <PackageLicenseUrl>https://github.com/alzuma/ServiceLocator/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/alzuma/ServiceLocator</PackageProjectUrl>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

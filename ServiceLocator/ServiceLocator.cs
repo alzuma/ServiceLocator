@@ -13,19 +13,14 @@ namespace ServiceLocator
                 scan.FromAssemblyOf<T>()
                     .AddClasses(classes => classes.WithAttribute<Service>(s => s.Lifetime == ServiceLifetime.Scoped))
                     .AsImplementedInterfaces()
-                    .WithScopedLifetime());
-
-            scanServices.Scan(scan =>
-                scan.FromAssemblyOf<T>()
+                    .WithScopedLifetime()
                     .AddClasses(classes => classes.WithAttribute<Service>(s => s.Lifetime == ServiceLifetime.Singleton))
                     .AsImplementedInterfaces()
-                    .WithSingletonLifetime());
-
-            scanServices.Scan(scan =>
-                scan.FromAssemblyOf<T>()
+                    .WithSingletonLifetime()
                     .AddClasses(classes => classes.WithAttribute<Service>(s => s.Lifetime == ServiceLifetime.Transient))
                     .AsImplementedInterfaces()
-                    .WithTransientLifetime());
+                    .WithTransientLifetime()
+            );
 
             services.TryAdd(scanServices);
         }
