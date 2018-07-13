@@ -65,5 +65,16 @@ namespace ServiceLocator.Tests
             resultList.Count.ShouldBe(1);
             resultList.ShouldContain("value1");
         }
+
+        [Fact]
+        public async Task SameInterfaceTest()
+        {
+            var response = await _client.GetAsync("/api/same");
+            response.EnsureSuccessStatusCode();
+
+            var responseString = await response.Content.ReadAsStringAsync();
+            
+            responseString.ShouldBe("2");
+        }
     }
 }

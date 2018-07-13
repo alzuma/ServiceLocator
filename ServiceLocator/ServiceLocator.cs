@@ -22,7 +22,7 @@ namespace ServiceLocator
                     .WithTransientLifetime()
             );
 
-            services.TryAdd(scanServices);
+            services.Add(scanServices);
         }
     }
 }
