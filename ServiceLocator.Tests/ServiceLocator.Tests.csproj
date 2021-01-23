@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceLocator.WebApi.Tests\ServiceLocator.WebApi.Tests.csproj" />
     <ProjectReference Include="..\WebApplicationTest\WebApplicationTest.csproj" />
   </ItemGroup>
 
