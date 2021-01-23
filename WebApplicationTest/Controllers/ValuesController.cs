@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using WebApplicationTest.Controllers.Services;
 using WebApplicationTest.Controllers.Services.interfaces;
 
 namespace WebApplicationTest.Controllers
@@ -24,6 +25,14 @@ namespace WebApplicationTest.Controllers
             scopedValueService.GetValues();
             var scopedValueService2 = _serviceProvider.GetRequiredService<IScopedValueService>();
             return scopedValueService2.GetValues();
+        }
+        
+        [HttpGet("bytype")]
+        public IEnumerable<string> GetByType()
+        {
+            var type = typeof(ScopedScopedValueService);
+            var service = (ScopedScopedValueService)_serviceProvider.GetService(type);
+            return service.GetValues();
         }
 
         [HttpGet("singleton")]

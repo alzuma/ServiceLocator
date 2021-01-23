@@ -35,6 +35,20 @@ namespace ServiceLocator.Tests
             resultList.ShouldContain("value1");
             resultList.ShouldContain("value2");
         }
+        
+        [Fact]
+        public async Task ScopedByTypeServiceTest()
+        {
+            var response = await _client.GetAsync("/api/values/bytype");
+            response.EnsureSuccessStatusCode();
+
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
+
+            resultList.Count.ShouldBe(1);
+            resultList.ShouldContain("value1");
+        }
 
         [Fact]
         public async Task SingletonServiceTest()
