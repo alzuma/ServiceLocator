@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ServiceLocator.WebApi.Tests.Controllers.Services.interfaces
+namespace WebApplicationTest.Controllers.Services.interfaces
 {
     public interface IScopedValueService
     {

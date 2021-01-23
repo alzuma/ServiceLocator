@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
-using ServiceLocator.WebApi.Tests.Controllers.Services.interfaces;
+using ServiceLocator;
+using WebApplicationTest.Controllers.Services.interfaces;
 
-namespace ServiceLocator.WebApi.Tests.Controllers.Services
+namespace WebApplicationTest.Controllers.Services
 {
     [Service(ServiceLifetime.Transient)]
     internal class TransientValueService : ITransientValueService

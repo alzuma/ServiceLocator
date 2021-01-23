@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using ServiceLocator.WebApi.Tests.Controllers.Services.interfaces;
+using WebApplicationTest.Controllers.Services.interfaces;
 
-namespace ServiceLocator.WebApi.Tests.Controllers
+namespace WebApplicationTest.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
-    public class ValuesController : Controller
+    public class ValuesController : ControllerBase
     {
         private readonly IServiceProvider _serviceProvider;
 

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Kristaps Vitolins</Authors>
     <Company />
@@ -10,12 +10,12 @@
     <Copyright />
     <PackageLicenseUrl>https://github.com/alzuma/ServiceLocator/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/alzuma/ServiceLocator</PackageProjectUrl>
-    <Version>1.0.3</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
-    <PackageReference Include="Scrutor" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Scrutor" Version="3.3.0" />
   </ItemGroup>
 
 </Project>

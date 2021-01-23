@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using ServiceLocator.WebApi.Tests.Controllers.Services.interfaces;
+using WebApplicationTest.Controllers.Services.interfaces;
 
-namespace ServiceLocator.WebApi.Tests.Controllers
+namespace WebApplicationTest.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
-    public class SameController: Controller
+    public class SameController: ControllerBase
     {
         private readonly List<ISame> _sames;
 
