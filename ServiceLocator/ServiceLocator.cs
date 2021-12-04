@@ -5,7 +5,7 @@ namespace ServiceLocator
 {
     public static class ServiceLocator
     {
-        public static void AddServiceLocator<T>(this IServiceCollection services)
+        public static IServiceCollection AddServiceLocator<T>(this IServiceCollection services)
         {
             var scanServices = new ServiceCollection();
 
@@ -23,6 +23,7 @@ namespace ServiceLocator
             );
 
             services.Add(scanServices);
+            return services;
         }
     }
 }
