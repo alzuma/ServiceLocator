@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Kristaps Vitolins</Authors>
     <Company />
@@ -11,7 +10,8 @@
     <PackageLicenseUrl>https://github.com/alzuma/ServiceLocator/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/alzuma/ServiceLocator</PackageProjectUrl>
     <Version>1.1.0</Version>
-    <PackageVersion>1.1.1</PackageVersion>
+    <PackageVersion>1.2.0</PackageVersion>
+    <TargetFrameworks>net7.0;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
