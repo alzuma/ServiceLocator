@@ -1,93 +1,122 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using Shouldly;
-using WebApplicationTest;
 using Xunit;
 
-namespace ServiceLocator.Tests
+namespace ServiceLocator.Tests;
+
+public class ServiceLocatorTests : IClassFixture<WebApplicationFactory<global::ServiceLocator.TestApi.Program>>
 {
-    public class ServiceLocatorTests
+    private readonly HttpClient _client;
+
+    public ServiceLocatorTests(WebApplicationFactory<global::ServiceLocator.TestApi.Program> factory)
     {
-        private readonly HttpClient _client;
+        _client = factory.CreateClient();
+    }
 
-        public ServiceLocatorTests()
-        {
-            var server = new TestServer(new WebHostBuilder()
-                .UseStartup<Startup>());
-            _client = server.CreateClient();
-        }
+    [Fact]
+    public async Task ScopedServiceTest()
+    {
+        var response = await _client.GetAsync("/api/scoped");
+        response.EnsureSuccessStatusCode();
 
-        [Fact]
-        public async Task ScopedServiceTest()
-        {
-            var response = await _client.GetAsync("/api/values");
-            response.EnsureSuccessStatusCode();
+        var responseString = await response.Content.ReadAsStringAsync();
 
-            var responseString = await response.Content.ReadAsStringAsync();
+        var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
 
-            var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
+        resultList!.Count.ShouldBe(2);
+        resultList.ShouldContain("value1");
+        resultList.ShouldContain("value2");
+    }
+    
+    [Fact]
+    public async Task ScopedByTypeServiceTest()
+    {
+        var response = await _client.GetAsync("/api/scoped/bytype");
+        response.EnsureSuccessStatusCode();
 
-            resultList.Count.ShouldBe(2);
-            resultList.ShouldContain("value1");
-            resultList.ShouldContain("value2");
-        }
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
+
+        resultList!.Count.ShouldBe(1);
+        resultList.ShouldContain("value1");
+    }
+
+    [Fact]
+    public async Task SingletonServiceTest()
+    {
+        var response = await _client.GetAsync("/api/singleton");
+        response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
+
+        resultList!.Count.ShouldBe(2);
+        resultList.ShouldContain("value1");
+        resultList.ShouldContain("value2");
+    }
+
+    [Fact]
+    public async Task TransientServiceTest()
+    {
+        var response = await _client.GetAsync("/api/transient");
+        response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        var service2Values = JsonConvert.DeserializeObject<List<string>>(responseString);
+        service2Values.ShouldNotBeNull();
+        service2Values!.Count.ShouldBe(0); // Transient - new instance has no values
+    }
+
+    [Fact]
+    public async Task SameInterfaceTest()
+    {
+        var response = await _client.GetAsync("/api/same");
+        response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
         
-        [Fact]
-        public async Task ScopedByTypeServiceTest()
-        {
-            var response = await _client.GetAsync("/api/values/bytype");
-            response.EnsureSuccessStatusCode();
+        responseString.ShouldBe("2");
+    }
 
-            var responseString = await response.Content.ReadAsStringAsync();
+    [Fact]
+    public async Task KeyedServiceBigTest()
+    {
+        var response = await _client.GetAsync("/api/keyed/big");
+        response.EnsureSuccessStatusCode();
 
-            var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
+        var responseString = await response.Content.ReadAsStringAsync();
+        responseString.ShouldContain("Big cache: test");
+    }
 
-            resultList.Count.ShouldBe(1);
-            resultList.ShouldContain("value1");
-        }
+    [Fact]
+    public async Task KeyedServiceSmallTest()
+    {
+        var response = await _client.GetAsync("/api/keyed/small");
+        response.EnsureSuccessStatusCode();
 
-        [Fact]
-        public async Task SingletonServiceTest()
-        {
-            var response = await _client.GetAsync("/api/values/singleton");
-            response.EnsureSuccessStatusCode();
+        var responseString = await response.Content.ReadAsStringAsync();
+        responseString.ShouldContain("Small cache: test");
+    }
 
-            var responseString = await response.Content.ReadAsStringAsync();
+    [Fact]
+    public async Task KeyedServiceEnumerationTest()
+    {
+        var response = await _client.GetAsync("/api/keyed/all");
+        response.EnsureSuccessStatusCode();
 
-            var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
+        var responseString = await response.Content.ReadAsStringAsync();
+        var caches = JsonConvert.DeserializeObject<List<string>>(responseString);
 
-            resultList.Count.ShouldBe(2);
-            resultList.ShouldContain("value1");
-            resultList.ShouldContain("value2");
-        }
-
-        [Fact]
-        public async Task TransientServiceTest()
-        {
-            var response = await _client.GetAsync("/api/values/transient");
-            response.EnsureSuccessStatusCode();
-
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            var resultList = JsonConvert.DeserializeObject<List<string>>(responseString);
-
-            resultList.Count.ShouldBe(1);
-            resultList.ShouldContain("value1");
-        }
-
-        [Fact]
-        public async Task SameInterfaceTest()
-        {
-            var response = await _client.GetAsync("/api/same");
-            response.EnsureSuccessStatusCode();
-
-            var responseString = await response.Content.ReadAsStringAsync();
-            
-            responseString.ShouldBe("2");
-        }
+        caches.ShouldNotBeNull();
+        caches!.Count.ShouldBe(2); // Both keyed caches enumerable
+        caches.ShouldContain(c => c.Contains("Big cache"));
+        caches.ShouldContain(c => c.Contains("Small cache"));
     }
 }

@@ -46,7 +46,7 @@ app.MapGet("/api/transient", (IServiceProvider sp) =>
     var service1 = sp.GetRequiredService<ITransientService>();
     service1.AddValue("value1");
     var service2 = sp.GetRequiredService<ITransientService>();
-    return Results.Ok(new { Service2Values = service2.GetValues() });
+    return Results.Ok(service2.GetValues());
 });
 
 // Test endpoint for multiple implementations
@@ -76,4 +76,7 @@ app.MapGet("/api/keyed/all", (IEnumerable<ICache> caches) =>
 app.Run();
 
 // Make Program accessible for testing
-public partial class Program { }
+namespace ServiceLocator.TestApi
+{
+    public partial class Program { }
+}

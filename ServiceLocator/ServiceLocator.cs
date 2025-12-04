@@ -49,13 +49,16 @@ namespace ServiceLocator
                 var attribute = serviceInfo.Attribute;
                 var interfaces = serviceType.GetInterfaces();
 
-                // Register as self
+                // Register as self with key
                 RegisterKeyedService(services, serviceType, serviceType, attribute.Key!, attribute.Lifetime);
 
-                // Register as interfaces
+                // Register as interfaces with key
                 foreach (var interfaceType in interfaces)
                 {
                     RegisterKeyedService(services, interfaceType, serviceType, attribute.Key!, attribute.Lifetime);
+                    
+                    // Also register as non-keyed for enumeration support
+                    RegisterNonKeyedService(services, interfaceType, serviceType, attribute.Lifetime);
                 }
             }
 
@@ -83,6 +86,16 @@ namespace ServiceLocator
                 default:
                     throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, "Invalid service lifetime");
             }
+        }
+
+        private static void RegisterNonKeyedService(
+            IServiceCollection services,
+            Type serviceType,
+            Type implementationType,
+            ServiceLifetime lifetime)
+        {
+            var descriptor = new ServiceDescriptor(serviceType, implementationType, lifetime);
+            services.TryAddEnumerable(descriptor);
         }
     }
 }
