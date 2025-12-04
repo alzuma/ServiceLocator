@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Version>2.0.0</Version>
-    <PackageVersion>2.0.0</PackageVersion>
-    <Nullable>enable</Nullable>
+    <PackageVersion>2.0.3</PackageVersion>
+    <Nullable>enable</Nullable> 
     <ImplicitUsings>enable</ImplicitUsings>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Courland IT</Authors>

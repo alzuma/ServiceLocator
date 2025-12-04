@@ -297,7 +297,7 @@ ServiceLocator uses a unified reflection-based registration process:
 
 2. Update the package:
    ```bash
-   dotnet add package ServiceLocator --version 2.0.0
+   dotnet add package ServiceLocator --version 2.0.3
    ```
 
 3. (Optional) Start using keyed services for new scenarios
