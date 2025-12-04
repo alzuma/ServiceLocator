@@ -1,43 +1,323 @@
 # ServiceLocator
 
-Fill service provider with services marked by attributes
+[![NuGet](https://img.shields.io/nuget/v/ServiceLocator.svg)](https://www.nuget.org/packages/ServiceLocator/)
+[![.NET](https://img.shields.io/badge/.NET-9.0-purple.svg)](https://dotnet.microsoft.com/download/dotnet/9.0)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Attribute-based service registration for .NET dependency injection with support for keyed services. Automatically scan and register services decorated with the `[Service]` attribute.
+
+## Features
+
+- 🚀 **Automatic Service Registration** - Decorate classes with `[Service]` and they're automatically registered
+- 🔑 **Keyed Services Support** - Register and resolve services by key (new in .NET 8+)
+- ⚡ **All Service Lifetimes** - Scoped, Singleton, and Transient support
+- 🎯 **Interface Registration** - Services registered as both concrete type and all interfaces
+- 🔍 **Assembly Scanning** - Uses Scrutor for efficient service discovery
+- ✨ **Clean API** - Single extension method: `AddServiceLocator<T>()`
 
 ## Installation
 
+```bash
+dotnet add package ServiceLocator
 ```
-Install-Package ServiceLocator
-```
 
-## Usage
+**Requirements:**
+- .NET 9.0 or later
+- Microsoft.Extensions.DependencyInjection 9.0.0+
 
-#### Add Service locator
+## Quick Start
 
-<T> where T is a Assembly to scan
+### Basic Usage (Non-Keyed Services)
+
+**1. Decorate your services:**
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
+using Microsoft.Extensions.DependencyInjection;
+using ServiceLocator;
+
+public interface IUserService
 {
-    // ****
-    services.AddServiceLocator<Program>();
-    // ****
+    User GetUser(int id);
+}
+
+[Service(ServiceLifetime.Scoped)]
+public class UserService : IUserService
+{
+    public User GetUser(int id) => new User { Id = id };
 }
 ```
 
-Decorate class with attributes, so that locator can find them and register them in service provider.
+**2. Register services in your application:**
 
-1. [Service(ServiceLifetime.Scoped)]
-2. [Service(ServiceLifetime.Singleton)]
-3. [Service(ServiceLifetime.Transient)]
+```csharp
+var builder = WebApplication.CreateBuilder(args);
 
-**Singleton** means only a single instance will ever be created. That instance is shared between all components that require it. The same instance is thus used always.
+// Automatically register all services with [Service] attribute
+// from the assembly containing Program
+builder.Services.AddServiceLocator<Program>();
 
-**Scoped means** an instance is created once per scope. A scope is created on every request to the application, thus any components registered as Scoped will be created once per request.
+var app = builder.Build();
+```
 
-**Transient** components are created every time they are requested and are never shared.
+**3. Use dependency injection as normal:**
+
+```csharp
+app.MapGet("/user/{id}", (int id, IUserService userService) =>
+{
+    return userService.GetUser(id);
+});
+
+app.Run();
+```
+
+### Keyed Services (New in v2.0.0)
+
+Keyed services allow you to register multiple implementations of the same interface and resolve them by key.
+
+**1. Register services with keys:**
+
+```csharp
+public interface ICache
+{
+    string Get(string key);
+}
+
+[Service(ServiceLifetime.Singleton, Key = "redis")]
+public class RedisCache : ICache
+{
+    public string Get(string key) => $"Redis: {key}";
+}
+
+[Service(ServiceLifetime.Singleton, Key = "memory")]
+public class MemoryCache : ICache
+{
+    public string Get(string key) => $"Memory: {key}";
+}
+```
+
+**2. Resolve services by key:**
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+app.MapGet("/cache/redis/{key}", (
+    string key,
+    [FromKeyedServices("redis")] ICache cache) =>
+{
+    return cache.Get(key);
+});
+
+app.MapGet("/cache/memory/{key}", (
+    string key,
+    [FromKeyedServices("memory")] ICache cache) =>
+{
+    return cache.Get(key);
+});
+```
+
+**3. Enumerate all services (including keyed):**
+
+```csharp
+app.MapGet("/cache/all/{key}", (
+    string key,
+    IEnumerable<ICache> caches) =>
+{
+    return caches.Select(c => c.Get(key));
+});
+// Returns: ["Redis: test", "Memory: test"]
+```
+
+## Service Lifetimes
+
+### Scoped
+Services are created once per request (HTTP request in web apps).
 
 ```csharp
 [Service(ServiceLifetime.Scoped)]
-internal class ScopedScopedValueService : IScopedValueService
+public class RequestService : IRequestService
 {
+    // New instance per HTTP request
 }
 ```
+
+### Singleton
+Services are created once and shared across the entire application lifetime.
+
+```csharp
+[Service(ServiceLifetime.Singleton)]
+public class ConfigurationService : IConfigurationService
+{
+    // Single instance for entire application
+}
+```
+
+### Transient
+Services are created each time they are requested.
+
+```csharp
+[Service(ServiceLifetime.Transient)]
+public class TemporaryService : ITemporaryService
+{
+    // New instance every time it's injected
+}
+```
+
+## Advanced Scenarios
+
+### Multiple Implementations
+
+Register multiple implementations of the same interface:
+
+```csharp
+public interface INotificationService
+{
+    void Notify(string message);
+}
+
+[Service(ServiceLifetime.Scoped)]
+public class EmailNotificationService : INotificationService
+{
+    public void Notify(string message) => SendEmail(message);
+}
+
+[Service(ServiceLifetime.Scoped)]
+public class SmsNotificationService : INotificationService
+{
+    public void Notify(string message) => SendSms(message);
+}
+
+// Inject all implementations
+app.MapPost("/notify", (string message, IEnumerable<INotificationService> notifiers) =>
+{
+    foreach (var notifier in notifiers)
+    {
+        notifier.Notify(message);
+    }
+});
+```
+
+### Enum Keys
+
+Keys can be strings, integers, enums, or any object:
+
+```csharp
+public enum CacheType
+{
+    Primary,
+    Secondary,
+    Fallback
+}
+
+[Service(ServiceLifetime.Singleton, Key = CacheType.Primary)]
+public class PrimaryCache : ICache
+{
+    // ...
+}
+
+// Resolve by enum
+app.MapGet("/cache/primary", ([FromKeyedServices(CacheType.Primary)] ICache cache) =>
+{
+    return cache.Get("data");
+});
+```
+
+### Mixed Keyed and Non-Keyed Services
+
+```csharp
+// Non-keyed service (traditional registration)
+[Service(ServiceLifetime.Scoped)]
+public class DefaultCache : ICache
+{
+    public string Get(string key) => $"Default: {key}";
+}
+
+// Keyed services
+[Service(ServiceLifetime.Scoped, Key = "fast")]
+public class FastCache : ICache
+{
+    public string Get(string key) => $"Fast: {key}";
+}
+
+// Resolve non-keyed service
+app.MapGet("/cache/default/{key}", (string key, ICache cache) =>
+{
+    return cache.Get(key); // Gets DefaultCache
+});
+
+// Resolve keyed service
+app.MapGet("/cache/fast/{key}", (
+    string key,
+    [FromKeyedServices("fast")] ICache cache) =>
+{
+    return cache.Get(key); // Gets FastCache
+});
+
+// Enumerate all (both keyed and non-keyed)
+app.MapGet("/cache/all/{key}", (string key, IEnumerable<ICache> caches) =>
+{
+    return caches.Select(c => c.Get(key));
+    // Returns: ["Default: test", "Fast: test"]
+});
+```
+
+## How It Works
+
+ServiceLocator uses a two-phase registration process:
+
+1. **Phase 1 - Non-Keyed Services**: Uses [Scrutor](https://github.com/khellang/Scrutor) to scan the assembly for classes with `[Service]` attribute where `Key == null`. These are registered using the traditional `AsSelfWithInterfaces()` pattern.
+
+2. **Phase 2 - Keyed Services**: Uses reflection to find classes with `[Service]` attribute where `Key != null`. These are registered using Microsoft's built-in `AddKeyedScoped/Singleton/Transient` methods.
+
+**Important:** Keyed services are registered ONLY as keyed services (not both keyed and non-keyed). They can still be enumerated via `IEnumerable<T>` injection.
+
+## Migration from v1.x to v2.0.0
+
+### Breaking Changes
+
+- **Target Framework**: Now requires .NET 9.0 (previously .NET 7.0)
+- **Attribute Change**: `Lifetime` is now a property instead of a field (binary breaking change)
+
+### Non-Breaking Changes
+
+- Existing services without `Key` property continue to work exactly as before
+- No changes required to your existing service registrations
+- All tests from v1.x should pass without modification
+
+### Upgrading
+
+1. Update your project to target .NET 9.0:
+   ```xml
+   <TargetFramework>net9.0</TargetFramework>
+   ```
+
+2. Update the package:
+   ```bash
+   dotnet add package ServiceLocator --version 2.0.0
+   ```
+
+3. (Optional) Start using keyed services for new scenarios
+
+## Dependencies
+
+- [Microsoft.Extensions.DependencyInjection](https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection/) (9.0.0)
+- [Scrutor](https://www.nuget.org/packages/Scrutor/) (5.0.1)
+
+## Examples
+
+See the [ServiceLocator.TestApi](ServiceLocator.TestApi/) project for complete working examples of:
+- Scoped, Singleton, and Transient services
+- Multiple implementations of the same interface
+- Keyed services with string keys
+- Enumerating all services including keyed ones
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**With love from [Courland IT](https://courlant.it)** ❤️

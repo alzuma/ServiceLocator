@@ -10,29 +10,8 @@ namespace ServiceLocator
     {
         public static IServiceCollection AddServiceLocator<T>(this IServiceCollection services)
         {
-            // Phase 1: Non-keyed services using Scrutor (existing logic)
-            var scanServices = new ServiceCollection();
-            scanServices.Scan(scan =>
-                scan.FromAssemblyOf<T>()
-                    .AddClasses(classes => classes.WithAttribute<Service>(s => s.Lifetime == ServiceLifetime.Scoped && s.Key == null))
-                    .AsSelfWithInterfaces()
-                    .WithScopedLifetime()
-                    .AddClasses(classes => classes.WithAttribute<Service>(s => s.Lifetime == ServiceLifetime.Singleton && s.Key == null))
-                    .AsSelfWithInterfaces()
-                    .WithSingletonLifetime()
-                    .AddClasses(classes => classes.WithAttribute<Service>(s => s.Lifetime == ServiceLifetime.Transient && s.Key == null))
-                    .AsSelfWithInterfaces()
-                    .WithTransientLifetime()
-            );
-
-            foreach (var service in scanServices)
-            {
-                services.Add(service);
-            }
-
-            // Phase 2: Keyed services using manual reflection
             var assembly = typeof(T).Assembly;
-            var keyedServiceTypes = assembly.GetTypes()
+            var serviceTypes = assembly.GetTypes()
                 .Where(type => type.IsClass && !type.IsAbstract)
                 .Select(type => new
                 {
@@ -40,25 +19,34 @@ namespace ServiceLocator
                     Attributes = type.GetCustomAttributes<Service>(false).ToArray()
                 })
                 .Where(x => x.Attributes.Length > 0)
-                .SelectMany(x => x.Attributes.Select(attr => new { x.Type, Attribute = attr }))
-                .Where(x => x.Attribute.Key != null);
+                .SelectMany(x => x.Attributes.Select(attr => new { x.Type, Attribute = attr }));
 
-            foreach (var serviceInfo in keyedServiceTypes)
+            foreach (var serviceInfo in serviceTypes)
             {
                 var serviceType = serviceInfo.Type;
                 var attribute = serviceInfo.Attribute;
-                var interfaces = serviceType.GetInterfaces();
 
-                // Register as self with key
-                RegisterKeyedService(services, serviceType, serviceType, attribute.Key!, attribute.Lifetime);
-
-                // Register as interfaces with key
-                foreach (var interfaceType in interfaces)
+                if (attribute.Key == null)
                 {
-                    RegisterKeyedService(services, interfaceType, serviceType, attribute.Key!, attribute.Lifetime);
-                    
-                    // Also register as non-keyed for enumeration support
-                    RegisterNonKeyedService(services, interfaceType, serviceType, attribute.Lifetime);
+                    // Non-keyed service: register as self and all interfaces
+                    RegisterNonKeyedServiceWithInterfaces(services, serviceType, attribute.Lifetime);
+                }
+                else
+                {
+                    // Keyed service: register with key + enumeration support
+                    var interfaces = serviceType.GetInterfaces();
+
+                    // Register as self with key
+                    RegisterKeyedService(services, serviceType, serviceType, attribute.Key, attribute.Lifetime);
+
+                    // Register as interfaces with key
+                    foreach (var interfaceType in interfaces)
+                    {
+                        RegisterKeyedService(services, interfaceType, serviceType, attribute.Key, attribute.Lifetime);
+                        
+                        // Also register as non-keyed for enumeration support
+                        RegisterNonKeyedService(services, interfaceType, serviceType, attribute.Lifetime);
+                    }
                 }
             }
 
@@ -96,6 +84,44 @@ namespace ServiceLocator
         {
             var descriptor = new ServiceDescriptor(serviceType, implementationType, lifetime);
             services.TryAddEnumerable(descriptor);
+        }
+
+        private static void RegisterNonKeyedServiceWithInterfaces(
+            IServiceCollection services,
+            Type serviceType,
+            ServiceLifetime lifetime)
+        {
+            // Register as self (concrete type) - use TryAdd for first-wins behavior
+            RegisterService(services, serviceType, serviceType, lifetime);
+            
+            // Register as all implemented interfaces - use TryAddEnumerable for multiple implementations
+            foreach (var interfaceType in serviceType.GetInterfaces())
+            {
+                var descriptor = new ServiceDescriptor(interfaceType, serviceType, lifetime);
+                services.TryAddEnumerable(descriptor);
+            }
+        }
+
+        private static void RegisterService(
+            IServiceCollection services,
+            Type serviceType,
+            Type implementationType,
+            ServiceLifetime lifetime)
+        {
+            switch (lifetime)
+            {
+                case ServiceLifetime.Scoped:
+                    services.TryAddScoped(serviceType, implementationType);
+                    break;
+                case ServiceLifetime.Singleton:
+                    services.TryAddSingleton(serviceType, implementationType);
+                    break;
+                case ServiceLifetime.Transient:
+                    services.TryAddTransient(serviceType, implementationType);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, "Invalid service lifetime");
+            }
         }
     }
 }
