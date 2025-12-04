@@ -324,4 +324,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**With love from [Courland IT](https://courlant.it)** ❤️
+**With love from [Courland IT](https://courland.it)** ❤️
