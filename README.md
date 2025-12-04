@@ -9,11 +9,12 @@ Attribute-based service registration for .NET dependency injection with support 
 ## Features
 
 - 🚀 **Automatic Service Registration** - Decorate classes with `[Service]` and they're automatically registered
-- 🔑 **Keyed Services Support** - Register and resolve services by key (new in .NET 8+)
+- 🔑 **Keyed Services Support** - Register and resolve services by key
 - ⚡ **All Service Lifetimes** - Scoped, Singleton, and Transient support
 - 🎯 **Interface Registration** - Services registered as both concrete type and all interfaces
-- 🔍 **Assembly Scanning** - Uses Scrutor for efficient service discovery
+- 🔍 **Assembly Scanning** - Efficient reflection-based service discovery
 - ✨ **Clean API** - Single extension method: `AddServiceLocator<T>()`
+- 📦 **Lightweight** - Zero external dependencies (except Microsoft.Extensions.DependencyInjection)
 
 ## Installation
 
@@ -262,26 +263,30 @@ app.MapGet("/cache/all/{key}", (string key, IEnumerable<ICache> caches) =>
 
 ## How It Works
 
-ServiceLocator uses a two-phase registration process:
+ServiceLocator uses a unified reflection-based registration process:
 
-1. **Phase 1 - Non-Keyed Services**: Uses [Scrutor](https://github.com/khellang/Scrutor) to scan the assembly for classes with `[Service]` attribute where `Key == null`. These are registered using the traditional `AsSelfWithInterfaces()` pattern.
+1. **Scans the assembly** for all classes decorated with `[Service]` attribute
+2. **Non-Keyed Services** (where `Key == null`):
+   - Registered as concrete type (first-wins behavior with `TryAdd*`)
+   - Registered for all implemented interfaces (allows multiple implementations with `TryAddEnumerable`)
+3. **Keyed Services** (where `Key != null`):
+   - Registered with the specified key using `AddKeyedScoped/Singleton/Transient`
+   - Also registered as non-keyed for enumeration support via `IEnumerable<T>`
 
-2. **Phase 2 - Keyed Services**: Uses reflection to find classes with `[Service]` attribute where `Key != null`. These are registered using Microsoft's built-in `AddKeyedScoped/Singleton/Transient` methods.
-
-**Important:** Keyed services are registered ONLY as keyed services (not both keyed and non-keyed). They can still be enumerated via `IEnumerable<T>` injection.
+**Important:** Keyed services are accessible both by key AND via enumeration, giving you maximum flexibility.
 
 ## Migration from v1.x to v2.0.0
 
 ### Breaking Changes
 
 - **Target Framework**: Now requires .NET 9.0 (previously .NET 7.0)
-- **Attribute Change**: `Lifetime` is now a property instead of a field (binary breaking change)
+- **Dependency Removed**: Scrutor is no longer a dependency (reduces package size)
 
 ### Non-Breaking Changes
 
-- Existing services without `Key` property continue to work exactly as before
-- No changes required to your existing service registrations
-- All tests from v1.x should pass without modification
+- `[Service]` attribute is backward compatible - existing code works without changes
+- New optional `Key` property added for keyed service support
+- All existing tests pass without modification
 
 ### Upgrading
 
@@ -300,7 +305,6 @@ ServiceLocator uses a two-phase registration process:
 ## Dependencies
 
 - [Microsoft.Extensions.DependencyInjection](https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection/) (9.0.0)
-- [Scrutor](https://www.nuget.org/packages/Scrutor/) (5.0.1)
 
 ## Examples
 
